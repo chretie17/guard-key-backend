@@ -5,6 +5,10 @@ const authController = require('./controllers/authController');
 const userRoutes = require('./routes/userRoutes');
 const siteRoutes = require('./routes/siteRoutes');
 const keyRoutes = require('./routes/keyRoutes');
+const publicRoutes = require('./routes/publicRoutes');
+const AdminRoutes = require('./routes/adminRoutes');
+require('./utils/reminderJob'); 
+
 
 app.use(cors());
 
@@ -17,6 +21,8 @@ app.post('/login', authController.login);
 app.use('/users', userRoutes);
 app.use('/sites', siteRoutes);
 app.use('/requests', keyRoutes);
+app.use('/public', publicRoutes);
+app.use('/admin', AdminRoutes);
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
