@@ -36,7 +36,7 @@ exports.createOutsiderRequest = async (req, res) => {
         if (existingKeyRequests.length > 0) {
             const activeRequest = existingKeyRequests[0];
             return res.status(400).json({
-                error: `A key request for this site is already in progress or approved by ${activeRequest.username || activeRequest.email}.`
+                error: `A key request for this site is already in progress or being requested by ${activeRequest.username || activeRequest.email}.`
             });
         }
 

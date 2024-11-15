@@ -139,89 +139,155 @@ exports.updateRequestStatus = async (req, res) => {
         let emailSubject;
         let emailHtml;
 
-        switch (status) {
-            case 'Approved':
-                emailSubject = "Your Key Request Has Been Approved";
-                emailHtml = `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; color: #333; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <h2 style="color: #4CAF50; text-align: center;">Key Request Approved</h2>
-                        <p>Dear ${request.username},</p>
-                        <p>Your request for the key to access the site <strong>${request.site_name}</strong> has been <span style="color: #4CAF50; font-weight: bold;">approved</span>.</p>
-                        <p><strong>Please remember to return the key within 24 hours of this approval.</strong></p>
-                        <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Site Name:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${request.site_name}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Request ID:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${request.id}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Approval Status:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd; color: #4CAF50;">Approved</td>
-                            </tr>
-                        </table>
-                        <p>You may now proceed to access the site as scheduled. Please be aware that you are required to return the key within the next 24 hours. Failure to do so may result in reminders and potential action as per our policy.</p>
-                        <p style="margin-top: 20px;">Best Regards,<br>Security Access Team</p>
-                    </div>
-                `;
-                break;
+        const createEmailWrapper = (content) => `
+        <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: auto; padding: 0; background-color: #ffffff;">
+            <!-- Header with logo -->
+            <div style="background-color: #CC3D35; padding: 20px; text-align: center;">
+                <img src="https://pbs.twimg.com/profile_images/973500459284561920/9a_JIgzc_400x400.jpg" 
+                     alt="Company Logo" 
+                     style="width: 120px; height: auto;"
+                />
+            </div>
+            
+            <!-- Main content -->
+            <div style="padding: 40px 30px; background-color: #ffffff;">
+                ${content}
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f7f7f7; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
+                <p style="color: #666666; font-size: 12px; margin: 0;">
+                    © 2024 Security Access Team. All rights reserved.
+                </p>
+                <p style="color: #666666; font-size: 12px; margin: 10px 0 0 0;">
+                    This is an automated message, please do not reply directly to this email.
+                </p>
+            </div>
+        </div>
+    `;
 
-            case 'Denied':
-                emailSubject = "Your Key Request Has Been Denied";
-                emailHtml = `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; color: #333; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <h2 style="color: #ff4c4c; text-align: center;">Key Request Denied</h2>
-                        <p>Dear ${request.username},</p>
-                        <p>Unfortunately, your request for the key to access the site <strong>${request.site_name}</strong> has been <span style="color: #ff4c4c; font-weight: bold;">denied</span>.</p>
-                        <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Site Name:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${request.site_name}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Request ID:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${request.id}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Status:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd; color: #ff4c4c;">Denied</td>
-                            </tr>
-                        </table>
-                        <p>If you have questions, please contact support.</p>
-                        <p style="margin-top: 20px;">Best Regards,<br>Security Access Team</p>
-                    </div>
-                `;
-                break;
+    // Button style
+    const buttonStyle = `
+        display: inline-block;
+        padding: 12px 24px;
+        background-color: #CC3D35;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        margin: 20px 0;
+    `;
 
-            case 'Returned':
-                emailSubject = "Key Successfully Returned";
-                emailHtml = `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; color: #333; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <h2 style="color: #FFA500; text-align: center;">Key Returned Successfully</h2>
-                        <p>Dear ${request.username},</p>
-                        <p>This is to confirm that the key for accessing the site <strong>${request.site_name}</strong> has been <span style="color: #FFA500; font-weight: bold;">successfully returned</span>.</p>
-                        <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Site Name:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${request.site_name}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Request ID:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${request.id}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><strong>Status:</strong></td>
-                                <td style="padding: 8px; border: 1px solid #ddd; color: #FFA500;">Returned</td>
-                            </tr>
-                        </table>
-                        <p>Thank you for using our services.</p>
-                        <p style="margin-top: 20px;">Best Regards,<br>Security Access Team</p>
-                    </div>
-                `;
-                break;
-        }
+    // Status badge style
+    const getStatusBadge = (status, color) => `
+        display: inline-block;
+        padding: 6px 12px;
+        background-color: ${color};
+        color: #ffffff;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+    `;
+
+    switch (status) {
+        case 'Approved':
+            emailSubject = "✅ Key Request Approved - Action Required";
+            emailHtml = createEmailWrapper(`
+                <h1 style="color: #CC3D35; margin: 0 0 30px 0; font-size: 24px;">Key Request Approved</h1>
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">Dear ${request.username},</p>
+                
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">
+                    Your request for access to <strong>${request.site_name}</strong> has been 
+                    <span style="${getStatusBadge('Approved', '#4CAF50')}">Approved</span>
+                </p>
+
+                <div style="background-color: #f8f9fa; border-left: 4px solid #CC3D35; padding: 20px; margin: 30px 0;">
+                    <h3 style="color: #CC3D35; margin: 0 0 15px 0;">Important Information</h3>
+                    <ul style="color: #333333; margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 10px;">Request ID: <strong>${request.id}</strong></li>
+                        <li style="margin-bottom: 10px;">Site: <strong>${request.site_name}</strong></li>
+                        <li style="margin-bottom: 10px;">Return Deadline: <strong>Within 24 hours</strong></li>
+                    </ul>
+                </div>
+
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">
+                    ⚠️ <strong>Important:</strong> Please ensure to return the key within 24 hours of this approval.
+                </p>
+
+                <a href="#" style="${buttonStyle}">Access Site Details in the system</a>
+
+                <p style="color: #666666; font-size: 14px; margin-top: 40px;">
+                    Best Regards,<br>
+                    Security Access Team
+                </p>
+            `);
+            break;
+
+        case 'Denied':
+            emailSubject = "❌ Key Request Status Update";
+            emailHtml = createEmailWrapper(`
+                <h1 style="color: #CC3D35; margin: 0 0 30px 0; font-size: 24px;">Key Request Update</h1>
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">Dear ${request.username},</p>
+                
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">
+                    We regret to inform you that your request for access to <strong>${request.site_name}</strong> has been 
+                    <span style="${getStatusBadge('Denied', '#ff4c4c')}">Denied</span>
+                </p>
+
+                <div style="background-color: #f8f9fa; border-left: 4px solid #CC3D35; padding: 20px; margin: 30px 0;">
+                    <h3 style="color: #CC3D35; margin: 0 0 15px 0;">Request Details</h3>
+                    <ul style="color: #333333; margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 10px;">Request ID: <strong>${request.id}</strong></li>
+                        <li style="margin-bottom: 10px;">Site: <strong>${request.site_name}</strong></li>
+                    </ul>
+                </div>
+
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">
+                    If you believe this decision was made in error or need further clarification, please contact our support team.
+                </p>
+
+                <a href="#" style="${buttonStyle}">Contact Support</a>
+
+                <p style="color: #666666; font-size: 14px; margin-top: 40px;">
+                    Best Regards,<br>
+                    Security Access Team
+                </p>
+            `);
+            break;
+
+        case 'Returned':
+            emailSubject = "🔑 Key Return Confirmation";
+            emailHtml = createEmailWrapper(`
+                <h1 style="color: #CC3D35; margin: 0 0 30px 0; font-size: 24px;">Key Return Confirmation</h1>
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">Dear ${request.username},</p>
+                
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">
+                    We confirm that the key for <strong>${request.site_name}</strong> has been 
+                    <span style="${getStatusBadge('Returned', '#FFA500')}">Successfully Returned</span>
+                </p>
+
+                <div style="background-color: #f8f9fa; border-left: 4px solid #CC3D35; padding: 20px; margin: 30px 0;">
+                    <h3 style="color: #CC3D35; margin: 0 0 15px 0;">Return Details</h3>
+                    <ul style="color: #333333; margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 10px;">Request ID: <strong>${request.id}</strong></li>
+                        <li style="margin-bottom: 10px;">Site: <strong>${request.site_name}</strong></li>
+                        <li style="margin-bottom: 10px;">Status: <strong>Returned</strong></li>
+                    </ul>
+                </div>
+
+                <p style="color: #333333; font-size: 16px; line-height: 1.6;">
+                    Thank you for following our key return policy. Your cooperation helps maintain our security standards.
+                </p>
+
+                <a href="#" style="${buttonStyle}">View History in the system</a>
+
+                <p style="color: #666666; font-size: 14px; margin-top: 40px;">
+                    Best Regards,<br>
+                    Security Access Team
+                </p>
+            `);
+            break;
+    }
 
         try {
             await sendEmail(request.email, emailSubject, emailHtml);
