@@ -8,44 +8,55 @@ exports.createRequest = async (req, res) => {
     const { user_id, site_id, reason, requested_time } = req.body;
 
     try {
-        // Check if the user already has a request for this site, regardless of status
+        // Check if the user has an existing request for this site, excluding returned ones
         const [duplicateRequest] = await db.query(
-            "SELECT * FROM key_requests WHERE user_id = ? AND site_id = ?",
+            "SELECT * FROM key_requests WHERE user_id = ? AND site_id = ? AND status != 'Returned'",
             [user_id, site_id]
         );
 
         if (duplicateRequest.length > 0) {
-            return res.status(400).json({ error: "You have already submitted a request for this site." });
+            return res.status(400).json({ error: "You have an active request for this site. You can only request another key once it has been returned." });
         }
 
         // Check if the site is active
         const [siteStatus] = await db.query("SELECT status FROM sites WHERE id = ?", [site_id]);
         if (siteStatus.length === 0) {
             return res.status(404).json({ error: "Site not found." });
-        } else if (siteStatus[0].status !== 'active') {
+        } else if (siteStatus[0].status.toLowerCase() !== 'active') {
             return res.status(400).json({ error: "Key requests are only allowed for active sites." });
         }
 
-        // Check if there's any non-returned request for this site
-        const [existingRequests] = await db.query(
+        // Check if there's any active or pending request for this site in outsider requests
+        const [existingOutsiderRequests] = await db.query(
+            "SELECT * FROM outsider_requests WHERE site_id = ? AND status IN ('Approved', 'Pending', 'In Process')",
+            [site_id]
+        );
+
+        if (existingOutsiderRequests.length > 0) {
+            return res.status(400).json({ error: "A key request for this site is already in progress by another user." });
+        }
+
+        // Check if there's any non-returned request for this site in key_requests
+        const [existingKeyRequests] = await db.query(
             "SELECT * FROM key_requests WHERE site_id = ? AND status IN ('Approved', 'Pending', 'In Process')",
             [site_id]
         );
 
-        if (existingRequests.length > 0) {
+        if (existingKeyRequests.length > 0) {
             return res.status(400).json({ error: "A key request for this site is already in progress or approved." });
         }
 
         // Insert the new request
         const query = "INSERT INTO key_requests (user_id, site_id, reason, requested_time) VALUES (?, ?, ?, ?)";
         await db.query(query, [user_id, site_id, reason, requested_time]);
-        
+
         res.status(201).json({ message: "Key request submitted successfully" });
     } catch (error) {
         console.error("Error creating key request:", error);
         res.status(500).json({ error: "Error creating key request" });
     }
 };
+
 
 
 // Get all requests for a specific user (with username and site name)

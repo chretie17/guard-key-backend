@@ -7,6 +7,9 @@ const siteRoutes = require('./routes/siteRoutes');
 const keyRoutes = require('./routes/keyRoutes');
 const publicRoutes = require('./routes/publicRoutes');
 const AdminRoutes = require('./routes/adminRoutes');
+const dashboardRoutes = require('./routes/dashRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+
 require('./utils/reminderJob'); 
 
 
@@ -23,6 +26,9 @@ app.use('/sites', siteRoutes);
 app.use('/requests', keyRoutes);
 app.use('/public', publicRoutes);
 app.use('/admin', AdminRoutes);
+app.use('/dashboard', dashboardRoutes);
+app.use('/report', reportRoutes);
+
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
