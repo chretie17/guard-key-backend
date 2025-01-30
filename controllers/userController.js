@@ -3,21 +3,21 @@ const db = require('../config/db'); // No need to call .promise() here
 
 // Create a new user
 exports.createUser = async (req, res) => {
-    const { email, username, password, role } = req.body;
+    const { email, username, password, role, phone } = req.body;
     
     // Validate required fields
-    if (!email || !username || !password || !role) {
-        console.error("Missing required fields:", { email, username, password, role });
-        return res.status(400).json({ error: "All fields (email, username, password, role) are required." });
+    if (!email || !username || !password || !role || !phone) {
+        console.error("Missing required fields:", { email, username, password, role, phone });
+        return res.status(400).json({ error: "All fields (email, username, password, role, phone) are required." });
     }
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const query = "INSERT INTO users (email, username, password, role) VALUES (?, ?, ?, ?)";
-        await db.query(query, [email, username, hashedPassword, role]);
+        const query = "INSERT INTO users (email, username, password, role, phone) VALUES (?, ?, ?, ?, ?)";
+        await db.query(query, [email, username, hashedPassword, role, phone]);
         res.status(201).json({ message: "User created successfully" });
     } catch (err) {
-        console.error("Error creating user:", err);  // Log the error details
+        console.error("Error creating user:", err);
         res.status(500).json({ error: "Error creating user" });
     }
 };
@@ -25,7 +25,7 @@ exports.createUser = async (req, res) => {
 // Get all users
 exports.getAllUsers = async (req, res) => {
     try {
-        const [results] = await db.query("SELECT id, email, username, role FROM users");
+        const [results] = await db.query("SELECT id, email, username, role, phone FROM users");
         res.json(results);
     } catch (err) {
         res.status(500).json({ error: "Error fetching users" });
@@ -35,12 +35,19 @@ exports.getAllUsers = async (req, res) => {
 // Update a user
 exports.updateUser = async (req, res) => {
     const { id } = req.params;
-    const { email, username, role } = req.body;
-    const query = "UPDATE users SET email = ?, username = ?, role = ? WHERE id = ?";
+    const { email, username, role, phone } = req.body;
+
+    // Validate required fields
+    if (!email || !username || !role || !phone) {
+        return res.status(400).json({ error: "All fields (email, username, role, phone) are required." });
+    }
+
     try {
-        await db.query(query, [email, username, role, id]);
+        const query = "UPDATE users SET email = ?, username = ?, role = ?, phone = ? WHERE id = ?";
+        await db.query(query, [email, username, role, phone, id]);
         res.json({ message: "User updated successfully" });
     } catch (err) {
+        console.error("Error updating user:", err);
         res.status(500).json({ error: "Error updating user" });
     }
 };
