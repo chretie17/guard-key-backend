@@ -14,5 +14,7 @@ router.get('/user-requests/:userId', keyRequestController.getUserRequests); // A
 
 // Update request status (for admins to approve/deny/return)
 router.put('/update-status/:id', keyRequestController.updateRequestStatus); // Accessible at /requests/update-status/:id
+router.delete('/:id', keyRequestController.deleteRequest);
+
 
 module.exports = router;

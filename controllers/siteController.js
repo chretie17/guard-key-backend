@@ -37,9 +37,15 @@ exports.updateSite = async (req, res) => {
 exports.deleteSite = async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query("DELETE FROM sites WHERE id = ?", [id]);
-        res.status(204).send();
+        const [result] = await db.query("DELETE FROM sites WHERE id = ?", [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Site not found" });
+        }
+
+        res.status(200).json({ message: "Site deleted successfully" });
     } catch (error) {
-        res.status(500).json({ error: 'Error deleting site' });
+        console.error("Error deleting site:", error);
+        res.status(500).json({ error: error.message });
     }
 };
